@@ -1,0 +1,82 @@
+Resources:
+  ApiGatewayWithAuthorizationUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting: # パスワード忘れの際の復帰方法
+        RecoveryMechanisms:
+          - Name: 'verified_email'
+            Priority: 1
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false # 管理者権限を持つLambdaでのみユーザー作成を実行するので有効にする(ユーザー自身がSDKでサインアップする際はfalseにすること)
+        InviteMessageTemplate:
+          EmailMessage: 'Your username is {username} and temporary password is {####}.'
+          EmailSubject: 'Your temporary password'
+          SMSMessage: 'Your username is {username} and temporary password is {####}.'
+      AliasAttributes:
+        - email
+        - preferred_username # 独自のユーザー名称でログインできる仕様なので入れておく
+      AutoVerifiedAttributes:
+        - email # emailは自動的に検証し、保有を検証するうようにしておく
+      DeviceConfiguration: # デバイスはいったん記憶させない、今後MFA認証を実装する場合に有効にするのを検討
+        ChallengeRequiredOnNewDevice: false
+        DeviceOnlyRememberedOnUserPrompt: false
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      EmailVerificationMessage: 'Your verification code is {####}.'
+      EmailVerificationSubject: 'Your verification code'
+      MfaConfiguration: OFF
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+          TemporaryPasswordValidityDays: 365 # 管理者によるパスワードリセットは実装しないので、最長にしておく(セキュリティホールになる様子であれば今後対応を検討)
+      Schema:
+        - AttributeDataType: String
+          DeveloperOnlyAttribute: false
+          Mutable: true # OIDC, SAML2などのIDプロバイダーを追加し属性マッピングする可能性があるので変更可能にしておく
+          Name: email
+          Required: true
+      SmsAuthenticationMessage: 'Your verification code is {####}.'
+      SmsVerificationMessage: 'Your verification code is {####}.'
+      UsernameConfiguration:
+        CaseSensitive: true # 大文字と小文字を区別する
+      UserPoolAddOns:
+        AdvancedSecurityMode: AUDIT # いったん監視のみし、CloudWatchにてログ確認のみにする、今後セキュリティ強化のニーズが高まったらENFORCEDへ設定したい
+      UserPoolName: ${self:service}-${self:provider.stage}-user-pool
+      UserPoolTags:
+        Service: ${self:service}-${self:provider.stage}
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE # 認証リンクの送信は行わない、コード送信のみ送信
+        EmailMessage: 'Your verification code is {####}.'
+        EmailSubject: 'Your verification code'
+        SmsMessage: 'Your verification code is {####}.'
+
+  ApiGatewayWithAuthorizationUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      CallbackURLs:
+        - 'http://localhost:3000'
+      ClientName: ${self:service}-${self:provider.stage}-user-pool-client
+      DefaultRedirectURI: 'http://localhost:3000'
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      LogoutURLs:
+        - 'http://localhost:3000'
+      PreventUserExistenceErrors: ENABLED # Cognitoから返却するエラーは具体的にしておく(エラーによってUIを動的にしたい可能性があるので...)
+      ReadAttributes:
+        - email
+        - preferred_username
+      RefreshTokenValidity: 10 # リフレッシュトークンの生存日数
+      SupportedIdentityProviders:
+        - COGNITO # 今後拡張していくが、今はCognitoのみでOK
+      UserPoolId:
+        Ref: ApiGatewayWithAuthorizationUserPool
+      WriteAttributes: # 外部のIDプロバイダー利用時に属性を書き込む可能性があるので使用している属性情報の書き込みが可能にしておく
+        - email
+        - preferred_username

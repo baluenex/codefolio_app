@@ -1,0 +1,21 @@
+Resources:
+  GatewayResponse401:
+    Type: 'AWS::ApiGateway::GatewayResponse'
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: 'ApiGatewayRestApi'
+      StatusCode: '401'
+  GatewayResponse500:
+    Type: 'AWS::ApiGateway::GatewayResponse'
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      ResponseType: AUTHORIZER_FAILURE
+      RestApiId:
+        Ref: 'ApiGatewayRestApi'
+      StatusCode: '500'

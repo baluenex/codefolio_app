@@ -1,0 +1,52 @@
+service: codefolio-api
+frameworkVersion: '3'
+
+plugins:
+  - serverless-domain-manager
+
+provider:
+  name: aws
+  runtime: python3.9
+  apiGateway:
+    # accepted binary type for file uploads
+    binaryMediaTypes:
+      - 'multipart/form-data'
+  # lambdaHashingVersion: 20201221
+  stage: ${opt:stage, self:custom.defaultStage}
+  region: ap-northeast-1
+  environment:
+    ENV: ${opt:stage, self:custom.defaultStage}
+  iam:
+    role:
+      statements:
+      - Effect: "Allow"
+        Action:
+          - 'lambda:*'
+          - 'cognito:*'
+          - 'apigateway:*'
+          - 'dynamodb:*'
+          - 's3:*'
+        Resource: "*"
+
+custom:
+  defaultStage: dev
+  endpoint:
+    dev: "dev-api.codefolio.info"
+    prod: "prod-api.codefolio.info"
+  customDomain:
+    domainName: ${self:custom.endpoint.${self:provider.stage}}
+    certificateArn: "arn:aws:acm:us-east-1:724412619408:certificate/9f5c1819-96e1-4e89-b1cb-15bc6c448ac9"
+    basePath: ''
+    endpointType: "edge"
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+
+functions: ${file(./resources/functions.yml)}
+
+resources:
+  - ${file(resources/dynamodb.yml)}
+  # user pool, authorizerの設定 https://www.ragate.co.jp/blog/articles/5024
+  - ${file(resources/user-pool.yml)}
+  - ${file(resources/apigateway-authorizer.yml)}
+  # authorizerのCORS対応
+  - ${file(resources/apigateway-response.yml)}

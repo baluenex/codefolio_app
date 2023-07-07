@@ -1,0 +1,172 @@
+createUser:
+  handler: index_user.create
+  name: ${self:provider.stage}_create_user
+  events:
+    - http:
+        path: /create_user
+        method: post
+        # 初回ユーザー作成のため認証は行わない
+getUser:
+  handler: index_user.get
+  name: ${self:provider.stage}_get_user
+  events:
+    - http:
+        path: /get_user
+        method: get
+        cors:
+          origin: '*'
+          headers:
+            - Authorization
+        integration: lambda
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+checkDirectoryExists:
+  handler: index_directory.exists
+  name: ${self:provider.stage}_directory_exists
+  events:
+    - http:
+        path: /directory_exists
+        method: get
+        cors:
+          origin: '*'
+          headers:
+            - Authorization
+        integration: lambda
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+registerPayjp:
+  handler: index_user.register_payjp
+  name: ${self:provider.stage}_register_payjp
+  events:
+    - http:
+        path: /register_payjp
+        method: post
+        cors:
+          origin: '*'
+          headers:
+            - Authorization
+        integration: lambda
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+createDirectory:
+  handler: index_directory.create
+  name: ${self:provider.stage}_register_directory
+  events:
+    - http:
+        path: /register_directory
+        method: post
+        cors:
+          origin: '*'
+          headers:
+            - Authorization
+        integration: lambda
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+getFiles:
+  handler: index_directory.scan
+  name: ${self:provider.stage}_get_files
+  events:
+    - http:
+        path: /get_files
+        method: get
+        cors:
+          origin: '*'
+          headers:
+            - Authorization
+        integration: lambda
+        authorizer:
+          type: COGNITO_USER_POOLS
+          authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+uploadFiles:
+  handler: index_directory.upsert
+  name: ${self:provider.stage}_upload_files
+  events:
+    - http:
+        path: /upload_files
+        method: post
+        cors:
+          origin: '*'
+          headers: '*'
+        # 認証ありで実装できないため、accessTokenの利用でセキュリティを担保している。
+        #     - Authorization
+        #     - Content-Type
+        # integration: lambda
+        # authorizer:
+        #   type: COGNITO_USER_POOLS
+        #   authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+deleteFiles:
+  handler: index_directory.delete
+  name: ${self:provider.stage}_delete_files
+  events:
+    - http:
+        path: /delete_files
+        method: delete
+        cors:
+          origin: '*'
+          headers: '*'
+        # 認証ありで実装できないため、accessTokenの利用でセキュリティを担保している。
+        #     - Authorization
+        # integration: lambda
+        # authorizer:
+        #   type: COGNITO_USER_POOLS
+        #   authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+#TODO サブドメイン作成プランはプレミアプランとして人数制限でいつかリリースする。
+# checkBucketRegistered:
+#   handler: index_user.check_bucket_registered
+#   name: ${self:provider.stage}_check_bucket_registered
+#   events:
+#     - http:
+#         path: /check_bucket_registered
+#         method: get
+#         integration: lambda
+#         authorizer:
+#           type: COGNITO_USER_POOLS
+#           authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+# createBucket:
+#   handler: index_bucket.create
+#   name: ${self:provider.stage}_create_bucket
+#   events:
+#     - http:
+#         path: /create_bucket
+#         method: post
+#         integration: lambda
+#         authorizer:
+#           type: COGNITO_USER_POOLS
+#           authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+# setStaticHosting:
+#   handler: index_bucket.set_static_hosting
+#   name: ${self:provider.stage}_set_static_hosting
+#   events:
+#     - http:
+#         path: /set_static_hosting
+#         method: post
+#         integration: lambda
+#         authorizer:
+#           type: COGNITO_USER_POOLS
+#           authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+# getAllFiles:
+#   handler: index_bucket.scan
+#   name: ${self:provider.stage}_get_all_files
+#   events:
+#     - http:
+#         path: /_get_all_files
+#         method: get
+#         integration: lambda
+#         authorizer:
+#           type: COGNITO_USER_POOLS
+#           authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer
+# createDns:
+#   handler: index_dns.create
+#   name: ${self:provider.stage}_create_dns
+#   events:
+#     - http:
+#         path: /create_dns
+#         method: post
+#         integration: lambda
+#         authorizer:
+#           type: COGNITO_USER_POOLS
+#           authorizerId: !Ref ApiGatewayWithAuthorizationAuthorizer

@@ -1,0 +1,48 @@
+Resources:
+  UsersTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: ${self:provider.stage}_codefolio_users
+  FileTransferHistoryTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: uid
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: uid
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: ${self:provider.stage}_codefolio_file_transfer_history
+  SettlementHistoryTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: settlement_month
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: settlement_month
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: ${self:provider.stage}_codefolio_settlement_history
